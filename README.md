@@ -7,7 +7,13 @@ A minimalist typing game built with **HTML + Tailwind (CDN)**. Design — bold, 
 
 **Live site (after deploy):** https://nno-official.github.io/typing-game
 
+<img width="1728" height="950" alt="Screenshot 2025-08-08 at 19 21 31" src="https://github.com/user-attachments/assets/943342da-b638-4e63-8268-f1bf465e675f" />
+
+
+
 ## ✨ Features
+
+
 - Difficulty & duration controls
 - Live WPM, accuracy, and progress
 - Starts on first key, supports backspace
