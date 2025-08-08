@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Typing Sprint — NK‑inspired</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="shortcut icon" href="favicon.svg" type="image/svg+xml" />
+    <style>
+      :root{ --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+      body{ font-family: var(--font-sans); }
+      /* Hide the caret for the hidden input but still keep it focusable for mobile */
+      #hiddenInput { position: absolute; left: -9999px; opacity: 0; }
+      /* Smooth underline caret on current char */
+      .caret { box-shadow: inset 0 -2px 0 0 currentColor; }
+    </style>
+  </head>
+  <body class="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-white/10">
+    <div class="max-w-6xl mx-auto px-5 py-10">
+      <!-- Header -->
+      <header class="flex items-center justify-between mb-10">
+        <div class="leading-tight">
+          <div class="text-[10px] uppercase tracking-[0.35em] text-neutral-500 mb-2">/ Typing experience</div>
+          <h1 class="text-5xl md:text-7xl font-bold tracking-tight leading-[0.95]">Inspire your <span class="italic">speed</span></h1>
+        </div>
+        <nav class="hidden sm:flex items-center gap-2">
+          <a class="text-xs uppercase tracking-widest text-neutral-400 hover:text-white transition" href="#controls">Controls</a>
+          <span class="text-neutral-700">/</span>
+          <a class="text-xs uppercase tracking-widest text-neutral-400 hover:text-white transition" href="#stats">Stats</a>
+          <span class="text-neutral-700">/</span>
+          <a class="text-xs uppercase tracking-widest text-neutral-400 hover:text-white transition" href="#play">Play</a>
+        </nav>
+      </header>
+
+      <!-- Controls -->
+      <section id="controls" class="rounded-2xl border border-white/10 bg-black/20 p-4 md:p-5 mb-6">
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="text-[11px] uppercase tracking-widest text-neutral-400">Difficulty
+            <select id="difficulty" class="ml-2 rounded-full bg-black/40 border border-white/15 px-3 py-2 text-sm hover:bg-black/60 focus:outline-none">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+
+          <label class="text-[11px] uppercase tracking-widest text-neutral-400">Duration
+            <select id="duration" class="ml-2 rounded-full bg-black/40 border border-white/15 px-3 py-2 text-sm hover:bg-black/60 focus:outline-none">
+              <option value="15">15s</option>
+              <option value="30" selected>30s</option>
+              <option value="60">60s</option>
+            </select>
+          </label>
+
+          <button id="startBtn" class="group inline-flex items-center rounded-full border border-white px-4 py-2 text-sm font-medium hover:bg-white hover:text-black active:scale-[.98] transition">
+            <span>Start</span>
+            <svg class="ml-2 h-4 w-4 -mr-0.5 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+
+          <button id="resetBtn" class="inline-flex items-center rounded-full border border-white/20 px-4 py-2 text-sm hover:border-white hover:bg-white/10 active:scale-[.98] transition">Reset</button>
+
+          <p class="text-[11px] uppercase tracking-widest text-neutral-500 ml-auto">Timer starts on first key</p>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section id="stats" class="rounded-2xl border border-white/10 overflow-hidden bg-black/20 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-white/10">
+          <div class="p-5">
+            <div class="text-[11px] uppercase tracking-widest text-neutral-400">WPM</div>
+            <div id="wpm" class="text-4xl md:text-5xl font-semibold">0</div>
+          </div>
+          <div class="p-5">
+            <div class="text-[11px] uppercase tracking-widest text-neutral-400">Accuracy</div>
+            <div id="accuracy" class="text-4xl md:text-5xl font-semibold">100%</div>
+          </div>
+          <div class="p-5">
+            <div class="text-[11px] uppercase tracking-widest text-neutral-400">Time</div>
+            <div id="time" class="text-4xl md:text-5xl font-semibold">30</div>
+          </div>
+          <div class="p-5">
+            <div class="text-[11px] uppercase tracking-widest text-neutral-400">Best</div>
+            <div id="best" class="text-4xl md:text-5xl font-semibold">0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progress rule -->
+      <div class="h-px bg-white/10 mb-6">
+        <div id="progressBar" class="h-full w-0 bg-white transition-[width] duration-100"></div>
+      </div>
+
+      <!-- Text area -->
+      <main id="play" class="relative rounded-2xl p-6 md:p-8 bg-black/20 border border-white/10 min-h-[220px] cursor-text">
+        <div class="text-[11px] uppercase tracking-widest text-neutral-500 mb-2">/ Prompt</div>
+        <div id="prompt" class="whitespace-pre-wrap leading-[2.1] text-2xl md:text-[32px] text-neutral-300"></div>
+        <input id="hiddenInput" autocomplete="off" autocapitalize="off" spellcheck="false" />
+        <div id="overlay" class="absolute inset-0 grid place-items-center pointer-events-none">
+          <div class="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 backdrop-blur px-4 py-2">
+            <span class="text-[11px] uppercase tracking-widest text-neutral-400">Click to focus</span>
+            <span class="hidden md:inline text-neutral-500">•</span>
+            <span class="text-[11px] uppercase tracking-widest text-neutral-300">Press
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-white/20 bg-white/10 animate-pulse">
+                Start
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </span>
+              to load a new prompt
+            </span>
+          </div>
+        </div>
+      </main>
+
+      <!-- Result toast -->
+      <div id="toast" class="fixed inset-x-0 bottom-6 mx-auto w-fit hidden">
+        <div class="rounded-full bg-white text-black px-5 py-2.5 shadow-xl">
+          <p id="toastText" class="text-sm"></p>
+        </div>
+      </div>
+
+      <footer class="mt-12 text-center text-xs text-neutral-500">
+        <div class="uppercase tracking-[0.35em]">/ Built by Nay Naing Oo</div>
+        <a href="https://github.com/nno-official/typing-game" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-3 text-neutral-400 hover:text-white">
+          <span class="uppercase tracking-widest text-[11px]">View source on GitHub</span>
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M10 7h7v7"/></svg>
+        </a>
+      </footer>
+    </div>
+
+    <script>
+      // ------------------------
+      // Data & helpers
+      // ------------------------
+      const WORDS = {
+        easy: [
+          "the","and","a","to","in","is","you","that","it","of","for","on","with","as","at","be","can","this","have","not","are","was","we","but","by","or","do","if","my","all","one","so","up","out","just","like","time","day","go","no","yes","more","new","good","best","make","play","fast","slow"
+        ],
+        medium: [
+          "little","wonder","switch","market","finger","bright","memory","rhythm","silver","planet","flower","winter","thunder","stream","number","hidden","random","simple","between","almost","minute","circle","people","puzzle","typing","sprint","energy","rocket","galaxy","smooth","future","travel","reason","custom","window","border","letter","cursor","shadow","packet","bridge","breeze","motion","volume","silent","signal","legend","studio","kernel"
+        ],
+        hard: [
+          "awkward","jazz","quartz","crypt","zephyr","glyph","mnemonic","sphinx","flimsy","oxidize","yachts","fjord","buzzing","puzzling","subway","jockey","vortex","whiskey","zigzag","zircon","jackpot","haphazard","xylophone","hyphen","syntax","hazardous","mystique","lyrical","juxtapose","exchequer","approximate","microcosm","paradoxical","psyche","syndrome","vignette","coexist","dichotomy","eloquent","facetious","gazebo","handkerchief","idiosyncrasy","labyrinth","nebulous","onomatopoeia","quintessential","rendezvous","schizophrenia","tantalizing"
+        ]
+      };
+
+      const el = (sel) => document.querySelector(sel);
+      const promptEl = el('#prompt');
+      const wpmEl = el('#wpm');
+      const accEl = el('#accuracy');
+      const timeEl = el('#time');
+      const bestEl = el('#best');
+      const progressEl = el('#progressBar');
+      const hiddenInput = el('#hiddenInput');
+      const overlay = el('#overlay');
+      const toast = el('#toast');
+      const toastText = el('#toastText');
+
+      const difficultySel = el('#difficulty');
+      const durationSel = el('#duration');
+      const startBtn = el('#startBtn');
+      const resetBtn = el('#resetBtn');
+
+      let target = '';
+      let chars = [];
+      let status = [];// 0=pending, 1=correct, -1=wrong
+      let idx = 0;
+
+      let started = false;
+      let ended = false;
+      let startTime = 0;
+      let timerId = null;
+      let duration = parseInt(durationSel.value,10);
+
+      let correct = 0;
+      let wrong = 0;
+
+      function storageKey() {
+        return `typing.best.${difficultySel.value}.${durationSel.value}`;
+      }
+
+      function loadBest() {
+        bestEl.textContent = localStorage.getItem(storageKey()) || 0;
+      }
+
+      function setBest(wpm) {
+        const key = storageKey();
+        const prev = parseInt(localStorage.getItem(key) || '0', 10);
+        if (wpm > prev) {
+          localStorage.setItem(key, String(wpm));
+          bestEl.textContent = String(wpm);
+          showToast(`New personal best: ${wpm} WPM`);
+        }
+      }
+
+      function showToast(msg) {
+        toastText.textContent = msg;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2200);
+      }
+
+      function rand(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+      function generatePrompt(wordCount = 40) {
+        const pool = WORDS[difficultySel.value] || WORDS.medium;
+        const words = [];
+        for (let i = 0; i < wordCount; i++) {
+          let w = rand(pool);
+          if (difficultySel.value === 'hard' && Math.random() < 0.18) {
+            // sprinkle punctuation
+            const punct = rand([',', '.', ';', ':', '?', '!']);
+            w += punct;
+          }
+          words.push(w);
+        }
+        return words.join(' ');
+      }
+
+      function renderPrompt(text) {
+        promptEl.innerHTML = '';
+        chars = Array.from(text);
+        status = new Array(chars.length).fill(0);
+        idx = 0;
+        const frag = document.createDocumentFragment();
+        chars.forEach((ch, i) => {
+          const span = document.createElement('span');
+          span.textContent = ch;
+          span.dataset.i = i;
+          span.className = 'text-neutral-400';
+          frag.appendChild(span);
+        });
+        promptEl.appendChild(frag);
+        // caret on first char
+        if (promptEl.firstChild) {
+          promptEl.firstChild.classList.add('text-neutral-100','caret');
+        }
+        updateProgress();
+      }
+
+      function resetGame(newPrompt=true){
+        ended = false;
+        started = false;
+        startTime = 0;
+        clearInterval(timerId);
+        timerId = null;
+        duration = parseInt(durationSel.value,10);
+        correct = 0; wrong = 0;
+        wpmEl.textContent = '0';
+        accEl.textContent = '100%';
+        timeEl.textContent = String(duration);
+        overlay.classList.remove('hidden');
+        if (newPrompt) target = generatePrompt();
+        renderPrompt(target);
+        loadBest();
+      }
+
+      function startTimerIfNeeded(){
+        if (started || ended) return;
+        started = true;
+        startTime = Date.now();
+        timerId = setInterval(() => {
+          const elapsed = (Date.now() - startTime) / 1000;
+          const remain = Math.max(0, duration - elapsed);
+          timeEl.textContent = String(Math.ceil(remain));
+          updateStats();
+          if (remain <= 0) {
+            endGame();
+          }
+        }, 100);
+      }
+
+      function updateProgress(){
+        const pct = (idx / chars.length) * 100;
+        progressEl.style.width = pct + '%';
+      }
+
+      function updateStats(){
+        const elapsed = started ? Math.max(0.01, (Date.now() - startTime) / 1000) : 0.01;
+        const wpm = Math.round(((correct) / 5) / (elapsed / 60));
+        const acc = Math.round((correct / Math.max(1, correct + wrong)) * 100);
+        wpmEl.textContent = String(isFinite(wpm) ? wpm : 0);
+        accEl.textContent = String(isFinite(acc) ? acc : 100) + '%';
+      }
+
+      function setCharClass(i, state) {
+        const node = promptEl.childNodes[i];
+        if (!node) return;
+        node.className = 'text-neutral-400';
+        if (state === 'current') node.classList.add('text-neutral-100','caret');
+        if (state === 'correct') node.classList.add('text-emerald-400');
+        if (state === 'wrong') node.classList.add('text-rose-400','bg-rose-500/10','rounded');
+      }
+
+      function handleInputKey(k){
+        if (ended) return;
+        startTimerIfNeeded();
+        // ignore modifier-only keys
+        if (k.length > 1 && k !== 'Backspace') return;
+
+        if (k === 'Backspace') {
+          if (idx > 0) {
+            // clear current caret
+            setCharClass(idx, null);
+            idx--;
+            if (status[idx] === 1) { correct--; }
+            else if (status[idx] === -1) { wrong--; }
+            status[idx] = 0;
+            setCharClass(idx, 'current');
+            updateStats();
+            updateProgress();
+          }
+          return;
+        }
+
+        const expected = chars[idx];
+        // if finished prompt early, ignore
+        if (expected === undefined) return;
+
+        if (k === expected) {
+          status[idx] = 1; correct++;
+          setCharClass(idx, 'correct');
+        } else {
+          status[idx] = -1; wrong++;
+          setCharClass(idx, 'wrong');
+        }
+        // move caret
+        setCharClass(idx + 1, 'current');
+        idx++;
+        updateStats();
+        updateProgress();
+
+        if (idx >= chars.length) {
+          endGame();
+        }
+      }
+
+      function endGame(){
+        if (ended) return;
+        ended = true;
+        clearInterval(timerId);
+        timerId = null;
+        const elapsed = Math.max(0.01, (Date.now() - startTime) / 1000);
+        const wpm = Math.round(((correct) / 5) / (elapsed / 60));
+        const acc = Math.round((correct / Math.max(1, correct + wrong)) * 100);
+        setBest(wpm);
+        showToast(`${Math.round(elapsed)}s · ${wpm} WPM · ${acc}% accuracy`);
+        overlay.classList.remove('hidden');
+      }
+
+      // ------------------------
+      // Events
+      // ------------------------
+      document.addEventListener('keydown', (e) => {
+        if (e.target === hiddenInput) return; // let the input handler do it
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (!started && (e.key.length === 1 || e.key === 'Backspace')) overlay.classList.add('hidden');
+        handleInputKey(e.key);
+      });
+
+      hiddenInput.addEventListener('beforeinput', (e) => {
+        // This captures mobile soft-keyboard input
+        if (e.data) {
+          overlay.classList.add('hidden');
+          handleInputKey(e.data);
+        } else if (e.inputType === 'deleteContentBackward') {
+          handleInputKey('Backspace');
+        }
+      });
+
+      document.querySelector('#play').addEventListener('click', () => hiddenInput.focus());
+
+      startBtn.addEventListener('click', () => {
+        target = generatePrompt();
+        resetGame(false);
+        overlay.classList.add('hidden');
+        hiddenInput.focus();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        resetGame();
+        hiddenInput.focus();
+      });
+
+      difficultySel.addEventListener('change', () => resetGame());
+      durationSel.addEventListener('change', () => resetGame(false));
+
+      // Boot
+      target = generatePrompt();
+      resetGame(false);
+    </script>
+  </body>
+</html>
